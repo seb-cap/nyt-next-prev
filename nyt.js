@@ -1,24 +1,5 @@
-createButtons(100);
-
-// Gets the button container
-async function getHolder(timeout) {
-	while (document.getElementsByClassName("xwd__modal--button-container").length === 0) {
-		await new Promise(r => setTimeout(r, timeout));
-	}
-	return document.getElementsByClassName("xwd__modal--button-container")[0];
-}
-
-// Wait for there to be no more holder
-async function waitMissingHolder() {
-	while (document.getElementsByClassName("xwd__modal--button-container").length !== 0) {
-		await new Promise(r => setTimeout(r, 200));
-	}
-}
-
 // Creates the next day button
-async function createButtons(timeout) {
-	const holder = await getHolder(timeout);
-	
+async function createButtons(holder) {	
 	// create the button
 	const nextButton = document.createElement("button");
 	const prevButton = document.createElement("button");
@@ -72,10 +53,6 @@ async function createButtons(timeout) {
 	
 	holder.prepend(prevButton); // i dont care enough to change this for the first crosswords
 	if (nextDay < Date.now()) holder.appendChild(nextButton);
-	
-	// wait for something to be clicked, then try to create end screen buttons
-	await waitMissingHolder();
-	createButtons(1000);
 }
 
 // adds a day to the date string
@@ -90,3 +67,24 @@ function addDays(date, days) {
 	
 	return newDate;
 }
+
+// Set up the MutationObserver
+const observer = new MutationObserver((mutations) => {
+    for (let mutation of mutations) {
+        if (mutation.type === 'childList') {
+            const holder = document.querySelector(".xwd__modal--button-container");
+            if (holder) {
+				observer.disconnect();
+                createButtons(holder);
+				observer.observe();
+                break;
+            }
+        }
+    }
+});
+
+// Start observing the document body for changes
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
