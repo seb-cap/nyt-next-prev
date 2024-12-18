@@ -69,14 +69,17 @@ function addDays(date, days) {
 }
 
 // Set up the MutationObserver
-const observer = new MutationObserver((mutations) => {
+const observer = new MutationObserver((mutations, observer) => {
     for (let mutation of mutations) {
         if (mutation.type === 'childList') {
             const holder = document.querySelector(".xwd__modal--button-container");
             if (holder) {
 				observer.disconnect();
                 createButtons(holder);
-				observer.observe();
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
                 break;
             }
         }
